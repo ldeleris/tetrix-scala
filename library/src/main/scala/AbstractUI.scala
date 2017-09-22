@@ -5,6 +5,7 @@ class AbstractUI {
 
   def left() {
     stage.moveLeft()
+    
   }
   def right() {
     stage.moveRight()
