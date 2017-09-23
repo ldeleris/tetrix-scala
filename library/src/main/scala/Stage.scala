@@ -8,6 +8,18 @@ class Stage(size: (Int, Int)) {
 
     def moveLeft() = moveBy(-1.0, 0.0)
     def moveRight() = moveBy(1.0, 0.0)
+    def rotateCW() = rotateBy(-math.Pi / 2.0)
+
+    private[this] def rotateBy(theta: Double): this.type = {
+        validate(
+            currentPiece.rotateBy(theta),
+            unload(currentPiece, blocks)) map { case (moved, unloaded) =>
+                blocks = load(moved, unloaded)
+                currentPiece = moved
+            }
+            this
+    }
+
     private[this] def moveBy(delta: (Double, Double)): this.type = {
         validate(
             currentPiece.moveBy(delta),

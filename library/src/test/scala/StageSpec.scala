@@ -12,6 +12,9 @@ class StageSpec extends Specification { def is =                                
     Moving to the left the current piece should
         change the blocks in the view                                                   $left1
         as long as it doesn't hit the wall                                              $leftWall1
+
+    Rotating the current piece should
+        change the blocks in the view.                                                  $rotate1
     """
 
     import com.deleris.tetrix._
@@ -29,4 +32,8 @@ class StageSpec extends Specification { def is =                                
             view.blocks map {_.pos} must contain(allOf(
                 (0, 0), (0, 17), (1, 17), (2, 17), (1, 18)
             )).inOrder
+    def rotate1 =
+        stage.rotateCW().view.blocks map {_.pos} must contain(exactly(
+            (0, 0), (5, 18), (5, 17), (5, 16), (6, 17)
+        )).inOrder
 }
