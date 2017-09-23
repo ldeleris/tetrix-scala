@@ -16,16 +16,25 @@ object Stage {
 
     //def view: GameView = GameView(blocks, size, currentPiece.current)
 
-    val moveLeft = transit(_.moveBy(-1.0, 0.0))
-    val moveRight = transit(_.moveBy(1.0, 0.0))
-    val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
+    val moveLeft = transit { _.moveBy(-1.0, 0.0) }
+    val moveRight = transit { _.moveBy(1.0, 0.0) }
+    val rotateCW = transit { _.rotateBy(-math.Pi / 2.0) }
 
-    private[this] def transit(trans: Piece => Piece): GameState => GameState = 
+    val tick = transit (_.moveBy(0.0, -1.0), spawn)
+
+    private[this] def spawn(s: GameState): GameState = {
+        def dropOffPos = (s.gridSize._1 / 2.0, s.gridSize._2 - 3.0)
+        val p = Piece(dropOffPos, TKind)
+        s.copy(blocks = s.blocks ++ p.current, currentPiece = p)
+    }
+
+    private[this] def transit(trans: Piece => Piece,
+        onFail: GameState => GameState = identity): GameState => GameState = 
         (s: GameState) => validate(s.copy(
             blocks = unload(s.currentPiece, s.blocks),
             currentPiece = trans(s.currentPiece))) map { case x =>
                 x.copy(blocks = load(x.currentPiece, x.blocks))
-        } getOrElse {s}
+        } getOrElse {onFail(s)}
 
     private[this] def validate(s: GameState): Option[GameState] = {
         val size = s.gridSize

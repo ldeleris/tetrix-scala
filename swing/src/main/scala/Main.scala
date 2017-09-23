@@ -8,6 +8,7 @@ object Main extends SimpleSwingApplication {
   import java.awt.{Dimension, Graphics2D, Graphics, Image, Rectangle}
   import java.awt.{Color => AWTColor}
   import com.deleris.tetrix._
+  import javax.swing.{Timer => SwingTimer, AbstractAction}
 
   val bluishGray = new AWTColor(48, 99, 99)
   val bluishLigherGray = new AWTColor(79, 130, 130)
@@ -19,7 +20,7 @@ object Main extends SimpleSwingApplication {
 
   val ui = new AbstractUI
 
-  def onKeyPress(keyCode: Value) = keyCode match {
+   def onKeyPress(keyCode: Value) = keyCode match {
     case Left  => ui.left()
     case Right => ui.right()
     case Up    => ui.up()
@@ -75,5 +76,10 @@ object Main extends SimpleSwingApplication {
       g fillRect (0, 0, size.width, size.height)
       onPaint(g)
     }
+
+    val timer = new SwingTimer(100, new AbstractAction() {
+      def actionPerformed(e: java.awt.event.ActionEvent) { repaint }
+    })
+    timer.start
   }
 }
