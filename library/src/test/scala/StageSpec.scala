@@ -15,25 +15,35 @@ class StageSpec extends Specification { def is =                                
 
     Rotating the current piece should
         change the blocks in the view.                                                  $rotate1
+
+    Collision detection should
+        detect collision                                                                $leftHit1
     """
 
     import com.deleris.tetrix._
-    def stage = new Stage((10, 20))
+    import Stage._
+    val s1 = newState(Block((0, 0), TKind) :: Nil)
     def left1 =
-        stage.moveLeft().view.blocks map {_.pos} must contain(allOf(
+        moveLeft(s1).blocks map {_.pos} must contain(exactly(
             (0, 0), (3, 17), (4, 17), (5, 17), (4, 18)
         )).inOrder
     def right1 =
-        stage.moveRight().view.blocks map {_.pos} must contain(allOf(
+        moveRight(s1).blocks map {_.pos} must contain(exactly(
             (0, 0), (5, 17), (6, 17), (7, 17), (6, 18)
         )).inOrder
-    def leftWall1 =
-        stage.moveLeft().moveLeft().moveLeft().moveLeft().moveLeft().
-            view.blocks map {_.pos} must contain(allOf(
+    def leftWall1 = 
+        Function.chain(moveLeft :: moveLeft :: moveLeft :: moveLeft :: moveLeft :: Nil)(s1).
+            blocks map {_.pos} must contain(exactly(
                 (0, 0), (0, 17), (1, 17), (2, 17), (1, 18)
-            )).inOrder
+        )).inOrder
     def rotate1 =
-        stage.rotateCW().view.blocks map {_.pos} must contain(exactly(
+        rotateCW(s1).blocks map {_.pos} must contain(exactly(
             (0, 0), (5, 18), (5, 17), (5, 16), (6, 17)
         )).inOrder
+    
+    val s2 = newState(Block((3, 17), TKind) :: Nil)
+    def leftHit1 =
+        moveLeft(s2).blocks map {_.pos} must contain(
+            (3, 17), (4, 17), (5, 17), (6, 17), (5, 18)
+        ).inOrder
 }

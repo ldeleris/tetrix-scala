@@ -1,14 +1,15 @@
 package com.deleris.tetrix
 
 class AbstractUI {
-  private[this] var stage = new Stage((10, 20))
+  private[this] val initialState = Stage.newState(Seq[Block](new Block((0, 0),TKind)))
+  private[this] var state = initialState
 
   def left() {
-    stage.moveLeft()
+    state = Stage.moveLeft(state)
     
   }
   def right() {
-    stage.moveRight()
+    state = Stage.moveRight(state)
   }
   def up() {
     
@@ -19,5 +20,5 @@ class AbstractUI {
   def space() {
     
   }
-  def view: GameView = stage.view
+  def view: GameView = state.view
 }

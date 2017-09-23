@@ -1,43 +1,50 @@
 package com.deleris.tetrix
 
-class Stage(size: (Int, Int)) {
+object Stage {
+    /**
     private[this] def dropOffPos = (size._1 / 2.0, size._2 - 3.0)
     private[this] var currentPiece = Piece(dropOffPos, TKind)
     private[this] var blocks = Block((0, 0), TKind) +: currentPiece.current
-    def view: GameView = GameView(blocks, size, currentPiece.current)
+    */
 
-    def moveLeft() = moveBy(-1.0, 0.0)
-    def moveRight() = moveBy(1.0, 0.0)
-    def rotateCW() = rotateBy(-math.Pi / 2.0)
-
-    private[this] def rotateBy(theta: Double): this.type = {
-        validate(
-            currentPiece.rotateBy(theta),
-            unload(currentPiece, blocks)) map { case (moved, unloaded) =>
-                blocks = load(moved, unloaded)
-                currentPiece = moved
-            }
-            this
+    def newState(blocks: Seq[Block]) : GameState = {
+        val size = (10, 20)
+        def dropOffPos = (size._1 / 2.0, size._2 - 3.0)
+        val p = Piece(dropOffPos, TKind)
+        GameState(blocks ++ p.current, size, p)
     }
 
-    private[this] def moveBy(delta: (Double, Double)): this.type = {
-        validate(
-            currentPiece.moveBy(delta),
-            unload(currentPiece, blocks)) map { case (moved, unloaded) =>
-                blocks = load(moved, unloaded)
-                currentPiece = moved
-        }        
-        this
-    }
-    private[this] def validate(p: Piece, bs: Seq[Block]): Option[(Piece, Seq[Block])] =
-        if (p.current map {_.pos} forall inBounds) Some(p, bs)
+    //def view: GameView = GameView(blocks, size, currentPiece.current)
+
+    val moveLeft = transit(_.moveBy(-1.0, 0.0))
+    val moveRight = transit(_.moveBy(1.0, 0.0))
+    val rotateCW = transit(_.rotateBy(-math.Pi / 2.0))
+
+    private[this] def transit(trans: Piece => Piece): GameState => GameState = 
+        (s: GameState) => validate(s.copy(
+            blocks = unload(s.currentPiece, s.blocks),
+            currentPiece = trans(s.currentPiece))) map { case x =>
+                x.copy(blocks = load(x.currentPiece, x.blocks))
+        } getOrElse {s}
+
+    private[this] def validate(s: GameState): Option[GameState] = {
+        val size = s.gridSize
+        def inBounds(pos: (Int, Int)): Boolean =
+            (pos._1 >= 0) && (pos._1 < size._1) && (pos._2 >= 0) && (pos._2 < size._2)
+        val currentPoss = s.currentPiece.current map {_.pos}
+        if ((currentPoss forall inBounds) &&
+            (s.blocks map {_.pos} intersect currentPoss).isEmpty) Some(s)
         else None
-    private[this] def inBounds(pos: (Int, Int)): Boolean =
-        (pos._1 >= 0) && (pos._1 < size._1) && (pos._2 >= 0) && (pos._2 < size._2)
+    }
+
+//    private[this] def inBounds(pos: (Int, Int)): Boolean =
+//        (pos._1 >= 0) && (pos._1 < size._1) && (pos._2 >= 0) && (pos._2 < size._2)
+
     private[this] def unload(p: Piece, bs: Seq[Block]): Seq[Block] = {
         val currentPoss = p.current map {_.pos}
         bs filterNot { currentPoss contains _.pos }
     }
+
     private[this] def load(p: Piece, bs: Seq[Block]): Seq[Block] =
         bs ++ p.current
 }

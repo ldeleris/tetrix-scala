@@ -5,6 +5,7 @@ case class Piece(pos: (Double, Double), kind: PieceKind, locals: Seq[(Double, Do
         locals map { case (x, y) =>
             Block((math.floor(x + pos._1).toInt, math.floor(y + pos._2).toInt), kind)
         }
+        
     def moveBy(delta: (Double, Double)): Piece =
         copy(pos = (pos._1 + delta._1, pos._2 + delta._2))
     
