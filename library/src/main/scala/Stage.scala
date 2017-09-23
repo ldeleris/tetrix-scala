@@ -9,12 +9,19 @@ class Stage(size: (Int, Int)) {
     def moveLeft() = moveBy(-1.0, 0.0)
     def moveRight() = moveBy(1.0, 0.0)
     private[this] def moveBy(delta: (Double, Double)): this.type = {
-        val unloaded = unload(currentPiece, blocks)
-        val moved = currentPiece.moveBy(delta)
-        blocks = load(moved, unloaded)
-        currentPiece = moved
+        validate(
+            currentPiece.moveBy(delta),
+            unload(currentPiece, blocks)) map { case (moved, unloaded) =>
+                blocks = load(moved, unloaded)
+                currentPiece = moved
+        }        
         this
     }
+    private[this] def validate(p: Piece, bs: Seq[Block]): Option[(Piece, Seq[Block])] =
+        if (p.current map {_.pos} forall inBounds) Some(p, bs)
+        else None
+    private[this] def inBounds(pos: (Int, Int)): Boolean =
+        (pos._1 >= 0) && (pos._1 < size._1) && (pos._2 >= 0) && (pos._2 < size._2)
     private[this] def unload(p: Piece, bs: Seq[Block]): Seq[Block] = {
         val currentPoss = p.current map {_.pos}
         bs filterNot { currentPoss contains _.pos }
