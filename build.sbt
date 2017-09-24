@@ -14,8 +14,10 @@ lazy val buildSettings = Seq(
 )
 
 lazy val specs2version = "2.2.2"
+lazy val akkaVersion = "2.2.1"
 lazy val libDeps = Def.setting { Seq(
-  "org.specs2" %% "specs2" % specs2version % "test"
+  "org.specs2" %% "specs2" % specs2version % "test",
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion
 )}
 lazy val swingDependencies = Def.setting {
   "org.scala-lang" % "scala-swing" % scalaVersion.value
