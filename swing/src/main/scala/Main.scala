@@ -8,6 +8,7 @@ object Main extends SimpleSwingApplication {
   import java.awt.{Dimension, Graphics2D, Graphics, Image, Rectangle}
   import java.awt.{Color => AWTColor}
   import com.deleris.tetrix._
+  import javax.swing.{Timer => SwingTimer, AbstractAction}
 
   val bluishGray = new AWTColor(48, 99, 99)
   val bluishLigherGray = new AWTColor(79, 130, 130)
@@ -19,7 +20,7 @@ object Main extends SimpleSwingApplication {
 
   val ui = new AbstractUI
 
-  def onKeyPress(keyCode: Value) = keyCode match {
+   def onKeyPress(keyCode: Value) = keyCode match {
     case Left  => ui.left()
     case Right => ui.right()
     case Up    => ui.up()
@@ -27,35 +28,47 @@ object Main extends SimpleSwingApplication {
     case Space => ui.space()
     case _ =>
   }
-  def onPaint(g: Graphics2D) {
-    //g setColor bluishSilver
-    //g drawString (ui.last, 20, 20)
-    val view = ui.view
 
+  def onPaint(g: Graphics2D) {
+    val view = ui.view
+    drawBoard(g, (0, 0), (10, 20), view.blocks, view.current)
+    drawBoard(g, (12 * (blockSize + blockMargin), 0),
+      view.miniGridSize, view.next, Nil) 
+  }
+
+  def drawStatus(g: Graphics2D, offset: (Int, Int), view: GameView) {
+    val unit = blockSize + blockMargin
+    g setColor bluishSilver
+
+  }
+  def drawBoard(g: Graphics2D, offset: (Int, Int), gridSize: (Int, Int), 
+      blocks: Seq[Block], current: Seq[Block]) {
     def buildRect(pos: (Int, Int)): Rectangle =
-      new Rectangle(pos._1 * (blockSize * blockMargin),
-        (view.gridSize._2 - pos._2 - 1) * (blockSize * blockMargin),
+      new Rectangle(offset._1 + pos._1 * (blockSize + blockMargin),
+        offset._2 + (gridSize._2 - pos._2 - 1) * (blockSize + blockMargin),
         blockSize, blockSize)
     def drawEmptyGrid {
       g setColor bluishLigherGray
       for {
-        x <- 0 to view.gridSize._1 - 1
-        y <- 0 to view.gridSize._2 - 2
+        x <- 0 to gridSize._1 - 1
+        y <- 0 to gridSize._2 - 1
         val pos = (x, y)
-      } g draw buildRect(pos)
+      } g draw buildRect(pos)      
     }
     def drawBlocks {
       g setColor bluishEvenLigher
-      view.blocks foreach { b => g fill buildRect(b.pos) }
+      blocks filter {_.pos._2 < gridSize._2} foreach { b =>
+        g fill buildRect(b.pos) }
     }
     def drawCurrent {
       g setColor bluishSilver
-      view.current foreach { b => g fill buildRect(b.pos) }
+      current filter {_.pos._2 < gridSize._2} foreach { b =>
+        g fill buildRect(b.pos) }
     }
     drawEmptyGrid
     drawBlocks
-    drawCurrent
-  }  
+    drawCurrent  
+  }
 
   def top = new MainFrame {
     title = "tetrix"
@@ -75,5 +88,10 @@ object Main extends SimpleSwingApplication {
       g fillRect (0, 0, size.width, size.height)
       onPaint(g)
     }
+
+    val timer = new SwingTimer(100, new AbstractAction() {
+      def actionPerformed(e: java.awt.event.ActionEvent) { repaint }
+    })
+    timer.start
   }
 }
