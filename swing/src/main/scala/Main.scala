@@ -32,6 +32,8 @@ object Main extends SimpleSwingApplication {
   def onPaint(g: Graphics2D) {
     val view = ui.view
     drawBoard(g, (0, 0), (10, 20), view.blocks, view.current)
+    drawBoard(g, (12 * (blockSize + blockMargin), 0),
+      view.miniGridSize, view.next, Nil) 
   }
 
   def drawStatus(g: Graphics2D, offset: (Int, Int), view: GameView) {

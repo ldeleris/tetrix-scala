@@ -1,24 +1,21 @@
 package com.deleris.tetrix
-import scala.annotation.tailrec
 
 object Stage {
+    import scala.annotation.tailrec
     /**
     private[this] def dropOffPos = (size._1 / 2.0, size._2 - 3.0)
     private[this] var currentPiece = Piece(dropOffPos, TKind)
     private[this] var blocks = Block((0, 0), TKind) +: currentPiece.current
     */
 
-    def newState(blocks: Seq[Block], kinds: Seq[PieceKind]) : GameState = {
-        val size = (10, 20)
-        //def dropOffPos = (size._1 / 2.0, size._2 - 3.0)
+    def newState(blocks: Seq[Block], gridSize: (Int, Int),
+        kinds: Seq[PieceKind]) : GameState = {
  
         val dummy = Piece((0, 0), TKind)
-        val withNext = spawn(GameState(Nil, size, dummy, dummy, kinds)).
+        val withNext = spawn(GameState(Nil, gridSize, dummy, dummy, kinds)).
             copy(blocks = blocks)
         spawn(withNext)
     }
-
-    //def view: GameView = GameView(blocks, size, currentPiece.current)
 
     val moveLeft = transit { _.moveBy(-1.0, 0.0) }
     val moveRight = transit { _.moveBy(1.0, 0.0) }
@@ -26,6 +23,10 @@ object Stage {
 
     val tick = transit (_.moveBy(0.0, -1.0),
         Function.chain(clearFullRow :: spawn :: Nil) )
+
+    val drop: GameState => GameState = (s0: GameState) =>
+        Function.chain((Nil padTo (s0.gridSize._2, transit {_.moveBy(0.0, -1.0)})) ++
+            List(tick))(s0)
 
     def randomStream(random: scala.util.Random): Stream[PieceKind] =
         PieceKind(random.nextInt % 7) #:: randomStream(random)
@@ -55,11 +56,11 @@ object Stage {
 
     private[this] def transit(trans: Piece => Piece,
         onFail: GameState => GameState = identity): GameState => GameState = 
-        (s: GameState) => validate(s.copy(
-            blocks = unload(s.currentPiece, s.blocks),
-            currentPiece = trans(s.currentPiece))) map { case x =>
-                x.copy(blocks = load(x.currentPiece, x.blocks))
-        } getOrElse {onFail(s)}
+        (s: GameState) => 
+            validate(s.unload(s.currentPiece).copy(
+                currentPiece = trans(s.currentPiece))) map { case x =>
+                    x.load(x.currentPiece)
+                } getOrElse {onFail(s)} 
 
     private[this] def validate(s: GameState): Option[GameState] = {
         val size = s.gridSize
@@ -70,10 +71,7 @@ object Stage {
             (s.blocks map {_.pos} intersect currentPoss).isEmpty) Some(s)
         else None
     }
-
-//    private[this] def inBounds(pos: (Int, Int)): Boolean =
-//        (pos._1 >= 0) && (pos._1 < size._1) && (pos._2 >= 0) && (pos._2 < size._2)
-
+/**
     private[this] def unload(p: Piece, bs: Seq[Block]): Seq[Block] = {
         val currentPoss = p.current map {_.pos}
         bs filterNot { currentPoss contains _.pos }
@@ -81,4 +79,5 @@ object Stage {
 
     private[this] def load(p: Piece, bs: Seq[Block]): Seq[Block] =
         bs ++ p.current
+*/
 }

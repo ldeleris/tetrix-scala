@@ -3,7 +3,7 @@ import java.{util => ju}
 
 class AbstractUI {
   private[this] val initialState = Stage.newState(Nil,
-    Stage.randomStream(new scala.util.Random))
+    (10, 23), Stage.randomStream(new scala.util.Random))
   private[this] var state = initialState
   private[this] val timer = new ju.Timer 
   timer.scheduleAtFixedRate(new ju.TimerTask {
@@ -24,7 +24,7 @@ class AbstractUI {
     state = Stage.tick(state)
   }
   def space() {
-    
+    state = Stage.drop(state)
   }
   def view: GameView = state.view
 }
