@@ -12,7 +12,7 @@ class AbstractUI {
   import ExecutionContext.Implicits.global
 
   private[this] val initialState = Stage.newState(Nil,
-    (10, 23), randomStream(new scala.util.Random))
+    (10, 20), randomStream(new scala.util.Random))
   private[this] val system = ActorSystem("TetrixSystem")
   private[this] val playerActor = system.actorOf(Props(new StageActor(
     initialState)), name = "playerActor")

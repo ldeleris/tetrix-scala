@@ -1,5 +1,6 @@
 package com.tetrix.swing
 
+import com.deleris.tetrix._
 import swing._
 import event._
 
@@ -7,7 +8,6 @@ object Main extends SimpleSwingApplication {
   import event.Key._
   import java.awt.{Dimension, Graphics2D, Graphics, Image, Rectangle}
   import java.awt.{Color => AWTColor}
-  import com.deleris.tetrix._
   import javax.swing.{Timer => SwingTimer, AbstractAction}
 
   val bluishGray = new AWTColor(48, 99, 99)
@@ -34,12 +34,21 @@ object Main extends SimpleSwingApplication {
     drawBoard(g, (0, 0), (10, 20), view.blocks, view.current)
     drawBoard(g, (12 * (blockSize + blockMargin), 0),
       view.miniGridSize, view.next, Nil) 
+    drawStatus(g, (12 * (blockSize + blockMargin), 0), view)
   }
 
   def drawStatus(g: Graphics2D, offset: (Int, Int), view: GameView) {
     val unit = blockSize + blockMargin
     g setColor bluishSilver
 
+    view.status match {
+      case GameOver =>
+        g setColor bluishSilver
+        g drawString ("game over",
+          12 * (blockSize * blockMargin), 7 * (blockSize * blockMargin))
+      case _ =>
+        // do nothing
+    }
   }
   def drawBoard(g: Graphics2D, offset: (Int, Int), gridSize: (Int, Int), 
       blocks: Seq[Block], current: Seq[Block]) {

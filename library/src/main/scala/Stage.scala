@@ -12,7 +12,7 @@ object Stage {
         kinds: Seq[PieceKind]) : GameState = {
  
         val dummy = Piece((0, 0), TKind)
-        val withNext = spawn(GameState(Nil, gridSize, dummy, dummy, kinds)).
+        val withNext = spawn(GameState(Nil, gridSize, ActiveStatus, dummy, dummy, kinds)).
             copy(blocks = blocks)
         spawn(withNext)
     }
@@ -48,19 +48,27 @@ object Stage {
     private[this] lazy val spawn: GameState => GameState = 
         (s: GameState) => {
             def dropOffPos = (s.gridSize._1 / 2.0, s.gridSize._2 - 3.0)
-            val next = Piece((2, 1), s.kinds.head)
-            val p = s.nextPiece.copy(pos = dropOffPos)
-            s.copy(blocks = s.blocks ++ p.current,
-                currentPiece = p, nextPiece = next, kinds = s.kinds.tail)
+            val s1 = s.copy(blocks = s.blocks,
+                currentPiece = s.nextPiece.copy(pos = dropOffPos),
+                nextPiece = Piece((2, 1), s.kinds.head),
+                kinds = s.kinds.tail)
+            validate(s1) map { case x =>
+                x.copy(blocks = load(x.currentPiece, x.blocks))
+            } getOrElse {
+                s1.copy(blocks = load(s1.currentPiece, s1.blocks), status = GameOver)
+            }
     }
 
     private[this] def transit(trans: Piece => Piece,
         onFail: GameState => GameState = identity): GameState => GameState = 
-        (s: GameState) => 
-            validate(s.unload(s.currentPiece).copy(
-                currentPiece = trans(s.currentPiece))) map { case x =>
-                    x.load(x.currentPiece)
+        (s: GameState) => s.status match {
+            case ActiveStatus =>
+                validate(s.unload(s.currentPiece).copy(
+                    currentPiece = trans(s.currentPiece))) map { case x =>
+                        x.load(x.currentPiece)
                 } getOrElse {onFail(s)} 
+            case _ => s 
+        }
 
     private[this] def validate(s: GameState): Option[GameState] = {
         val size = s.gridSize
@@ -76,8 +84,8 @@ object Stage {
         val currentPoss = p.current map {_.pos}
         bs filterNot { currentPoss contains _.pos }
     }
-
+*/
     private[this] def load(p: Piece, bs: Seq[Block]): Seq[Block] =
         bs ++ p.current
-*/
+
 }

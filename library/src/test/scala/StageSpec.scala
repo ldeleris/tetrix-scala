@@ -29,6 +29,9 @@ class StageSpec extends Specification { def is =                                
 
     Dropping the current piece should
         tick the piece until it hits something                                          $drop1
+
+    Spawning a new piece should
+        end the game it hits something                                                  $spawn1
     """
 
     import com.deleris.tetrix._
@@ -91,4 +94,8 @@ class StageSpec extends Specification { def is =                                
             (0, 0), (4, 0), (5, 0), (6, 0), (5, 1),
             (4, 17), (5, 17), (6, 17), (5, 18)
         )).inOrder
+
+    def spawn1 =
+        Function.chain(Nil padTo (10, drop))(s1).status must_==
+            GameOver
 }
