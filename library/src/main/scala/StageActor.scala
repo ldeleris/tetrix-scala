@@ -1,17 +1,24 @@
 package com.deleris.tetrix
 import akka.actor._
 
-class StageActor(s0: GameState) extends Actor {
+class StageActor(stateActor: ActorRef) extends Actor {
     import Stage._
-
-    private[this] var state: GameState = s0
+    import scala.concurrent.{Future, Await}
+    import scala.concurrent.duration._
+    import akka.pattern.ask
 
     def receive = {
-        case MoveLeft => state = moveLeft(state)
-        case MoveRight => state = moveRight(state)
-        case RotateCW => state = rotateCW(state)
-        case Tick => state = tick(state)
-        case Drop => state = drop(state)
-        case View => sender ! state.view
+        case MoveLeft => updateState {moveLeft}
+        case MoveRight => updateState {moveRight}
+        case RotateCW => updateState {rotateCW}
+        case Tick => updateState {tick}
+        case Drop => updateState {drop}
+    }
+
+    private[this] def updateState(trans: GameState => GameState) {
+        val future = (stateActor ? GetState)(1 second).mapTo[GameState] // akka.pattern.ask
+        val s1 = Await.result(future, 1 second)
+        val s2 = trans(s1)
+        stateActor ! SetState(s2)
     }
 }

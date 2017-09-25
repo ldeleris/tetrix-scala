@@ -1,9 +1,9 @@
 package com.deleris.tetrix
 
-sealed trait StateMessage
-case object MoveLeft extends StateMessage
-case object MoveRight extends StateMessage
-case object RotateCW extends StateMessage
-case object Tick extends StateMessage
-case object Drop extends StateMessage
-case object View extends StateMessage
+sealed trait StageMessage
+case object MoveLeft extends StageMessage
+case object MoveRight extends StageMessage
+case object RotateCW extends StageMessage
+case object Tick extends StageMessage
+case object Drop extends StageMessage
+case object View extends StageMessage
