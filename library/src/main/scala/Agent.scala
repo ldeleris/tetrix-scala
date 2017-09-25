@@ -7,14 +7,17 @@ class Agent {
 
     def utility(state: GameState): Double = state.status match {
         case GameOver => minUtility
-        case _ => state.lineCount.toDouble
+        case _ => state.lineCount.toDouble - penalty(state)
     }
 
     def bestMove(s0: GameState): StageMessage = {
         var retval: StageMessage = MoveLeft
         var current: Double = minUtility
         possibleMoves foreach { move =>
-            val u = utility(toTrans(move)(s0))
+            val ms =
+                if (move == Drop) move :: Nil
+                else move :: Drop :: Nil
+            val u = utility(Function.chain(ms map {toTrans})(s0))
             if (u > current) {
                 current = u
                 retval = move
@@ -34,4 +37,13 @@ class Agent {
             case Tick => tick 
             case Drop => drop 
         }
+    
+    private[this] def penalty(s: GameState): Double = {
+        val heights = s.unload(s.currentPiece).
+            blocks map {_.pos} groupBy {_._1} map { case (k, v) =>
+                (k, v.map({_._2}).max) }
+        val gaps = (0 to s.gridSize._1 - 2).toSeq map { x =>
+            heights.getOrElse(x, 0) - heights.getOrElse(x + 1, 0) } filter {_ > 1}
+        gaps map { x => x * x } sum
+    }
 }
