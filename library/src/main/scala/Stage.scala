@@ -12,7 +12,7 @@ object Stage {
         kinds: Seq[PieceKind]) : GameState = {
  
         val dummy = Piece((0, 0), TKind)
-        val withNext = spawn(GameState(Nil, gridSize, ActiveStatus, dummy, dummy, kinds)).
+        val withNext = spawn(GameState(Nil, gridSize, ActiveStatus, 0, dummy, dummy, kinds)).
             copy(blocks = blocks)
         spawn(withNext)
     }
@@ -40,7 +40,8 @@ object Stage {
                 else if (isFullRow(i, s))
                     tryNow(i - 1, s.copy(blocks = (s.blocks filter {_.pos._2 < i}) ++
                         (s.blocks filter {_.pos._2 > i} map { b =>
-                            b.copy(pos = (b.pos._1, b.pos._2 - 1)) })))
+                            b.copy(pos = (b.pos._1, b.pos._2 - 1)) }),
+                        lineCount = s.lineCount + 1))
                 else tryNow(i - 1, s)
             tryNow(s0.gridSize._2 - 1, s0)
         }

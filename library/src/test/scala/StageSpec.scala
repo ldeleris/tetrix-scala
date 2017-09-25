@@ -32,7 +32,10 @@ class StageSpec extends Specification { def is =                                
 
     Spawning a new piece should
         end the game it hits something                                                  $spawn1
-    """
+                                                                                            
+    Deleting a full row should
+        increment the line count                                                        $line1
+                                                                                            """
 
     import com.deleris.tetrix._
     import Stage._
@@ -98,4 +101,9 @@ class StageSpec extends Specification { def is =                                
     def spawn1 =
         Function.chain(Nil padTo (10, drop))(s1).status must_==
             GameOver
+
+    def line1 =
+        (s3.lineCount must_== 0) and
+        (Function.chain(Nil padTo (19, tick))(s3).
+        lineCount must_== 1)
 }
