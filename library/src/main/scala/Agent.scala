@@ -42,20 +42,35 @@ class Agent {
         } yield r ++ t 
     }
 
-    def bestMove(s0: GameState): StageMessage = {
+    def bestMove(s0: GameState): StageMessage = stopWatch("bestMove") { 
         var retval: Seq[StageMessage] = Nil
         var current: Double = minUtility
-        actionSeqs(s0) foreach { seq =>
+        val nodes = actionSeqs(s0) map { seq =>
             val ms = seq ++ Seq(Drop)
-            val u = utility(Function.chain(ms map {toTrans})(s0))
+            val s1 = Function.chain(ms map {toTrans})(s0)
+            val u = utility(s1)
             if (u > current) {
                 current = u 
                 retval = seq 
             }    
+            SearchNode(s1, ms, u)
+        }
+        nodes foreach { node =>
+            actionSeqs(node.state) foreach { seq =>
+                val ms = seq ++ Seq(Drop)
+                val s2 = Function.chain(ms map {toTrans})(node.state)
+                val u = utility(s2)
+                if ( u > current) {
+                    current = u 
+                    retval = node.actions ++ seq 
+                }
+            }
         }
         println("selected " + retval + " " + current.toString)
-        retval.headOption getOrElse {Tick}
+        retval.headOption getOrElse {Drop}
     }
+
+    case class SearchNode(state: GameState, actions: Seq[StageMessage], score: Double)    
         
     private[this] val possibleMoves: Seq[StageMessage] =
         Seq(MoveLeft, MoveRight, RotateCW, Tick, Drop)
@@ -91,5 +106,13 @@ class Agent {
             else rightLimit(n + 1, next)
         }
         (leftLimit(0, s0), rightLimit(0, s0))
+    }
+
+    private[this] def stopWatch[A](name: String)(arg: => A): A = {
+        val t0 = System.currentTimeMillis
+        val retval: A = arg
+        val t1 = System.currentTimeMillis
+        println(name + " took " + (t1 - t0).toString + " ms")
+        retval 
     }
 }
