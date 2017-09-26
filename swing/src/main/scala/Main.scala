@@ -41,12 +41,12 @@ object Main extends SimpleSwingApplication {
     val unit = blockSize + blockMargin
     g setColor bluishSilver
 
-    g drawString ("lines: " + view.lineCount.toString, 12 * unit, 7 * unit)
+    g drawString ("lines: " + view.lineCount.toString, offset._1, offset._2 + 7 * unit)
 
     view.status match {
       case GameOver =>
         g setColor bluishSilver
-        g drawString ("game over", 12 * unit, 7 * unit)
+        g drawString ("game over", offset._1, offset._2 + 8 * unit)
       case _ =>
         // do nothing
     }

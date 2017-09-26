@@ -14,10 +14,12 @@ class Agent {
     def reward(s: GameState): Double = s.lineCount.toDouble
 
     def penalty(s: GameState): Double = {
-        val heights = s.unload(s.currentPiece).blocks map {
-            _.pos} groupBy {_._1} map { case (k, v) =>
-                v.map({_._2 + 1}).max }
-        heights map { x => x * x } sum
+        val groupedByX = s.unload(s.currentPiece).blocks map {_.pos} groupBy {_._1}
+        val heights = groupedByX map { case (k, v) => v.map({_._2 + 1}).max }
+        val coverups = groupedByX flatMap { case (k, vs) =>
+            vs.map(_._2).sorted.zipWithIndex.dropWhile(x => x._1 == x._2).map(_._1 + 1)
+        }
+        math.sqrt((heights ++ coverups) map { x => x * x } sum)
     }
 
     def actionSeqs(s0: GameState): Seq[Seq[StageMessage]] = {
