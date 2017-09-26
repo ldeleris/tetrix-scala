@@ -1,6 +1,6 @@
 package com.deleris.tetrix
 
-sealed trait PieceKind 
+sealed trait PieceKind { def toInt: Int }
 case object IKind extends PieceKind { def toInt = 0 }
 case object JKind extends PieceKind { def toInt = 1 } 
 case object LKind extends PieceKind { def toInt = 2 }

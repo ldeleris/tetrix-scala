@@ -44,7 +44,10 @@ class Agent {
         } yield r ++ t 
     }
 
-    def bestMove(s0: GameState): StageMessage = stopWatch("bestMove") { 
+    def bestMove(s0: GameState): StageMessage =
+        bestMoves(s0).headOption getOrElse {Drop}
+
+    def bestMoves(s0: GameState): Seq[StageMessage] = stopWatch("bestMove") { 
         var retval: Seq[StageMessage] = Nil
         var current: Double = minUtility
         val nodes = actionSeqs(s0) map { seq =>
@@ -68,23 +71,14 @@ class Agent {
                 }
             }
         }
-        println("selected " + retval + " " + current.toString)
-        retval.headOption getOrElse {Drop}
+        //println("selected " + retval + " " + current.toString)
+        retval
     }
 
     case class SearchNode(state: GameState, actions: Seq[StageMessage], score: Double)    
         
     private[this] val possibleMoves: Seq[StageMessage] =
         Seq(MoveLeft, MoveRight, RotateCW, Tick, Drop)
-    
-    private[this] def toTrans(message: StageMessage): GameState => GameState =
-        message match {
-            case MoveLeft => moveLeft
-            case MoveRight => moveRight 
-            case RotateCW => rotateCW 
-            case Tick => tick 
-            case Drop => drop 
-        }
 
     private[this] def orientation(kind: PieceKind): Int = kind match {
         case IKind => 2
@@ -114,7 +108,7 @@ class Agent {
         val t0 = System.currentTimeMillis
         val retval: A = arg
         val t1 = System.currentTimeMillis
-        println(name + " took " + (t1 - t0).toString + " ms")
+        //println(name + " took " + (t1 - t0).toString + " ms")
         retval 
     }
 }
