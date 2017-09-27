@@ -11,7 +11,9 @@ class Agent {
         case _ => reward(state) - penalty(state) / 10.0
     }
 
-    def reward(s: GameState): Double = s.lineCount.toDouble
+    def reward(s: GameState): Double = 
+        if (s.lastDeleted < 2) 0
+        else s.lastDeleted
 
     def penalty(s: GameState): Double = {
         val groupedByX = s.unload(s.currentPiece).blocks map {_.pos} groupBy {_._1}
@@ -47,31 +49,33 @@ class Agent {
     def bestMove(s0: GameState): StageMessage =
         bestMoves(s0).headOption getOrElse {Drop}
 
-    def bestMoves(s0: GameState): Seq[StageMessage] = stopWatch("bestMove") { 
+    def bestMoves(s0: GameState): Seq[StageMessage] = {
         var retval: Seq[StageMessage] = Nil
         var current: Double = minUtility
-        val nodes = actionSeqs(s0) map { seq =>
-            val ms = seq ++ Seq(Drop)
-            val s1 = Function.chain(ms map {toTrans})(s0)
-            val u = utility(s1)
-            if (u > current) {
-                current = u 
-                retval = seq 
-            }    
-            SearchNode(s1, ms, u)
-        }
-        nodes foreach { node =>
-            actionSeqs(node.state) foreach { seq =>
+        stopWatch("bestMove") { 
+            val nodes = actionSeqs(s0) map { seq =>
                 val ms = seq ++ Seq(Drop)
-                val s2 = Function.chain(ms map {toTrans})(node.state)
-                val u = utility(s2)
-                if ( u > current) {
+                val s1 = Function.chain(ms map {toTrans})(s0)
+                val u = utility(s1)
+                if (u > current) {
                     current = u 
-                    retval = node.actions ++ seq 
+                    retval = seq 
+                }    
+                SearchNode(s1, ms, u)
+            }
+            nodes foreach { node =>
+                actionSeqs(node.state) foreach { seq =>
+                    val ms = seq ++ Seq(Drop)
+                    val s2 = Function.chain(ms map {toTrans})(node.state)
+                    val u = utility(s2)
+                    if ( u > current) {
+                        current = u 
+                        retval = node.actions ++ seq 
+                    }
                 }
             }
         }
-        //println("selected " + retval + " " + current.toString)
+        println("selected " + retval + " " + current.toString)
         retval
     }
 
@@ -108,7 +112,7 @@ class Agent {
         val t0 = System.currentTimeMillis
         val retval: A = arg
         val t1 = System.currentTimeMillis
-        //println(name + " took " + (t1 - t0).toString + " ms")
+        println(name + " took " + (t1 - t0).toString + " ms")
         retval 
     }
 }
