@@ -18,8 +18,8 @@ object Main extends SimpleSwingApplication {
   val blockMargin = 1
   val mainPanelSize = new Dimension(700, 400)
 
-  val config = Config(minActionTime = 151,
-    maxThinkTime = 1500,
+  val config = Config(minActionTime = 300, //151,
+    maxThinkTime = 3000,//1500,
     onDrop = Some(Tick))
   val ui = new AbstractUI(config)
 
@@ -52,6 +52,8 @@ object Main extends SimpleSwingApplication {
     g setColor bluishSilver
 
     g drawString ("lines: " + view.lineCount.toString, offset._1, offset._2 + 7 * unit)
+
+    g drawString ("pendingAttacks: " + view.pendingAttacks.toString, offset._1, offset._2 + 9 * unit)
 
     view.status match {
       case GameOver =>

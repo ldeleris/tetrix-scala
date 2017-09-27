@@ -35,6 +35,10 @@ class StageSpec extends Specification { def is =                                
                                                                                             
     Deleting a full row should
         increment the line count                                                        $line1
+
+    Attacks should
+        increments the pending attack count.                                            $attack1
+        and change the blocks in the view on spawn.                                     $attack2
                                                                                             """
 
     import com.deleris.tetrix._
@@ -106,4 +110,13 @@ class StageSpec extends Specification { def is =                                
         (s3.lineCount must_== 0) and
         (Function.chain(Nil padTo (19, tick))(s3).
         lineCount must_== 1)
+
+    def attack1 =
+        notifyAttack(s1).pendingAttacks must_== 1
+
+    def attack2 =
+        Function.chain(notifyAttack :: drop :: Nil)(s1).blocks map {_.pos} must contain(
+            (0, 1), (4, 1), (5, 1), (6, 1), (5, 2),
+            (4, 18), (5, 18), (6, 18), (5, 19)
+        )
 }

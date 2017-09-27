@@ -31,13 +31,13 @@ class Agent {
             if (down < -3 && up > 3) Some(math.min(crevassesWeight * hWithDefault(x), crevassesWeight * hWithDefault(x + 2)))
             else None
         }
-        /**
+        
         val coverupWeight = 1
         val coverups = groupedByX flatMap { case (k, vs) =>
             if (vs.size < heights(k)) Some(coverupWeight * heights(k))
             else None
-        }*/
-        math.sqrt((weightedHeights ++ crevasses) map { x => x * x } sum)
+        }
+        math.sqrt((weightedHeights ++ crevasses ++ coverups) map { x => x * x } sum)
     }
 
     def actionSeqs(s0: GameState): Seq[Seq[StageMessage]] = {

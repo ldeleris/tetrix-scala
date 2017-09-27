@@ -17,14 +17,37 @@ object Stage {
     val rotateCW = transit { _.rotateBy(-math.Pi / 2.0) }
 
     val tick = transit (_.moveBy(0.0, -1.0),
-        Function.chain(clearFullRow :: spawn :: Nil) )
+        Function.chain(clearFullRow :: attack :: spawn :: Nil) )
 
     val drop: GameState => GameState = (s0: GameState) =>
         Function.chain((Nil padTo (s0.gridSize._2, transit {_.moveBy(0.0, -1.0)})) ++
             List(tick))(s0)
 
+    val view: GameState => GameState = (s0: GameState) => s0
+
     def randomStream(random: scala.util.Random): Stream[PieceKind] =
         PieceKind(random.nextInt % 7) #:: randomStream(random)
+
+    val notifyAttack: GameState => GameState = (s0: GameState) => 
+        s0.copy(pendingAttacks = s0.pendingAttacks + 1)
+
+    val attackRandom = new util.Random(0L)
+    private[this] lazy val attack: GameState => GameState =
+        (s0: GameState) => {
+            def attackRow(s: GameState): Seq[Block] =
+                (0 to s.gridSize._1 - 1).toSeq flatMap { x =>
+                    if (attackRandom.nextBoolean) Some(Block((x, 0), TKind))
+                    else None
+                }
+            @tailrec def tryAttack(s: GameState): GameState =
+                if (s.pendingAttacks < 1) s 
+                else tryAttack(s.copy(
+                    blocks = (s.blocks map { b => b.copy(pos = (b.pos._1, b.pos._2 + 1)) } filter {
+                        _.pos._2 < s.gridSize._2 }) ++ attackRow(s),
+                    pendingAttacks = s.pendingAttacks - 2
+                ))
+            tryAttack(s0)
+        }
 
     private[this] lazy val clearFullRow: GameState => GameState =
         (s0: GameState) => {
@@ -85,5 +108,7 @@ object Stage {
             case RotateCW  => rotateCW
             case Tick      => tick
             case Drop      => drop
+            case View      => view
+            case Attack    => notifyAttack
         }  
 }

@@ -46,15 +46,16 @@ class AgentSpec extends Specification { def is =            s2"""
         val s = Function.chain(Nil padTo (19, tick))(s3)
         agent.reward(s) must_== 0.0
     }
-   
+    
+    val thinkTime = 1000
     def solver1 =
-        agent.bestMove(s1) must_== MoveLeft
+        agent.bestMove(s1, thinkTime) must_== MoveLeft
 
     def solver2 =
-        agent.bestMove(s3) must beOneOf(Drop, Tick)
+        agent.bestMove(s3, thinkTime) must beOneOf(Drop, Tick)
 
     def solver3 =
-        agent.bestMove(s5) must_== RotateCW
+        agent.bestMove(s5, thinkTime) must_== RotateCW
 
     def penalty1 = {
         val s = newState(Seq(

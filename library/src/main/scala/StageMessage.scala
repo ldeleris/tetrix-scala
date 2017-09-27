@@ -7,3 +7,4 @@ case object RotateCW extends StageMessage
 case object Tick extends StageMessage
 case object Drop extends StageMessage
 case object View extends StageMessage
+case object Attack extends StageMessage
