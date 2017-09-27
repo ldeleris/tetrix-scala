@@ -16,8 +16,8 @@ class StageActor(stateActor: ActorRef) extends Actor {
     }
 
     private[this] def updateState(trans: GameState => GameState) {
-        val future = (stateActor ? GetState)(1 second).mapTo[GameState] // akka.pattern.ask
-        val s1 = Await.result(future, 1 second)
+        val future = (stateActor ? GetState)(60 second).mapTo[GameState] // akka.pattern.ask
+        val s1 = Await.result(future, 60 second)
         val s2 = trans(s1)
         stateActor ! SetState(s2)
     }

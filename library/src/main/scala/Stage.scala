@@ -2,11 +2,6 @@ package com.deleris.tetrix
 
 object Stage {
     import scala.annotation.tailrec
-    /**
-    private[this] def dropOffPos = (size._1 / 2.0, size._2 - 3.0)
-    private[this] var currentPiece = Piece(dropOffPos, TKind)
-    private[this] var blocks = Block((0, 0), TKind) +: currentPiece.current
-    */
 
     def newState(blocks: Seq[Block], gridSize: (Int, Int),
         kinds: Seq[PieceKind]) : GameState = {

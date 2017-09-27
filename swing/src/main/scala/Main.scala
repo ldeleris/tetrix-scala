@@ -18,7 +18,10 @@ object Main extends SimpleSwingApplication {
   val blockMargin = 1
   val mainPanelSize = new Dimension(700, 400)
 
-  val ui = new AbstractUI
+  val config = Config(minActionTime = 151,
+    maxThinkTime = 1500,
+    onDrop = Some(Tick))
+  val ui = new AbstractUI(config)
 
    def onKeyPress(keyCode: Value) = keyCode match {
     case Left  => ui.left()
@@ -30,15 +33,22 @@ object Main extends SimpleSwingApplication {
   }
 
   def onPaint(g: Graphics2D) {
-    val view = ui.view
-    drawBoard(g, (0, 0), (10, 20), view.blocks, view.current)
-    drawBoard(g, (12 * (blockSize + blockMargin), 0),
-      view.miniGridSize, view.next, Nil) 
-    drawStatus(g, (12 * (blockSize + blockMargin), 0), view)
+    val (view1, view2) = ui.view
+    val unit = blockSize + blockMargin
+    val xOffset = mainPanelSize.width / 2
+
+    drawBoard(g, (0, 0), (10, 20), view1.blocks, view1.current)
+    drawBoard(g, (12 * unit, 0), view1.miniGridSize, view1.next, Nil) 
+    drawStatus(g, (12 * unit, 0), view1)
+
+    drawBoard(g, (xOffset, 0), (10, 20), view2.blocks, view2.current)
+    drawBoard(g, (12 * unit + xOffset, 0), view2.miniGridSize, view2.next, Nil) 
+    drawStatus(g, (12 * unit + xOffset, 0), view2)
   }
 
   def drawStatus(g: Graphics2D, offset: (Int, Int), view: GameView) {
     val unit = blockSize + blockMargin
+    
     g setColor bluishSilver
 
     g drawString ("lines: " + view.lineCount.toString, offset._1, offset._2 + 7 * unit)
@@ -47,6 +57,8 @@ object Main extends SimpleSwingApplication {
       case GameOver =>
         g setColor bluishSilver
         g drawString ("game over", offset._1, offset._2 + 8 * unit)
+      case Victory =>
+        g drawString ("you win!", offset._1, offset._2 + 8 * unit)
       case _ =>
         // do nothing
     }

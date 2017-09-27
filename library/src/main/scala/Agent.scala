@@ -31,12 +31,13 @@ class Agent {
             if (down < -3 && up > 3) Some(math.min(crevassesWeight * hWithDefault(x), crevassesWeight * hWithDefault(x + 2)))
             else None
         }
+        /**
         val coverupWeight = 1
         val coverups = groupedByX flatMap { case (k, vs) =>
             if (vs.size < heights(k)) Some(coverupWeight * heights(k))
             else None
-        }
-        math.sqrt((weightedHeights ++ crevasses ++ coverups) map { x => x * x } sum)
+        }*/
+        math.sqrt((weightedHeights ++ crevasses) map { x => x * x } sum)
     }
 
     def actionSeqs(s0: GameState): Seq[Seq[StageMessage]] = {
@@ -61,11 +62,12 @@ class Agent {
         } yield r ++ t 
     }
 
-    def bestMove(s0: GameState): StageMessage =
-        bestMoves(s0).headOption getOrElse {Drop}
+    def bestMove(s0: GameState, maxThinkTime: Long): StageMessage =
+        bestMoves(s0, maxThinkTime).headOption getOrElse {Drop}
 
-    def bestMoves(s0: GameState): Seq[StageMessage] = {
-        var retval: Seq[StageMessage] = Nil
+    def bestMoves(s0: GameState, maxThinkTime: Long): Seq[StageMessage] = {
+        val t0 = System.currentTimeMillis
+        var retval: Seq[StageMessage] = Tick :: Nil
         var current: Double = minUtility
         stopWatch("bestMove") { 
             val nodes = actionSeqs(s0) map { seq =>
@@ -79,18 +81,20 @@ class Agent {
                 SearchNode(s1, ms, u)
             }
             nodes foreach { node =>
-                actionSeqs(node.state) foreach { seq =>
-                    val ms = seq ++ Seq(Drop)
-                    val s2 = Function.chain(ms map {toTrans})(node.state)
-                    val u = utility(s2)
-                    if ( u > current) {
-                        current = u 
-                        retval = node.actions ++ seq 
+                if (System.currentTimeMillis - t0 < maxThinkTime)
+                    actionSeqs(node.state) foreach { seq =>
+                        val ms = seq ++ Seq(Drop)
+                        val s2 = Function.chain(ms map {toTrans})(node.state)
+                        val u = utility(s2)
+                        if ( u > current) {
+                            current = u 
+                            retval = node.actions
+                        }
                     }
-                }
+                else ()
             }
         }
-        println("selected " + retval + " " + current.toString)
+        //println("selected " + retval + " " + current.toString)
         retval
     }
 
@@ -127,7 +131,7 @@ class Agent {
         val t0 = System.currentTimeMillis
         val retval: A = arg
         val t1 = System.currentTimeMillis
-        println(name + " took " + (t1 - t0).toString + " ms")
+        //println(name + " took " + (t1 - t0).toString + " ms")
         retval 
     }
 }
