@@ -116,7 +116,7 @@ class StageSpec extends Specification { def is =                                
 
     def attack2 =
         Function.chain(notifyAttack :: drop :: Nil)(s1).blocks map {_.pos} must contain(
-            (0, 1), (4, 1), (5, 1), (6, 1), (5, 2),
-            (4, 18), (5, 18), (6, 18), (5, 19)
+            (0,1), (4,1), (5,1), (6,1), (5,2), (0,0), (1,0), (3,0),
+            (4,0), (6,0), (8,0), (9,0), (4,17), (5,17), (6,17), (5,18)
         )
 }

@@ -8,7 +8,7 @@ class Agent {
 
     def utility(state: GameState): Double = state.status match {
         case GameOver => minUtility
-        case _ => reward(state) - penalty(state) / 10.0
+        case _ => reward(state) + penalty(state) / minUtility
     }
 
     def reward(s: GameState): Double = 
@@ -63,7 +63,7 @@ class Agent {
     }
 
     def bestMove(s0: GameState, maxThinkTime: Long): StageMessage =
-        bestMoves(s0, maxThinkTime).headOption getOrElse {Drop}
+        bestMoves(s0, maxThinkTime).headOption getOrElse {Tick}
 
     def bestMoves(s0: GameState, maxThinkTime: Long): Seq[StageMessage] = {
         val t0 = System.currentTimeMillis

@@ -50,4 +50,11 @@ class AbstractUI(config: Config) {
   def view: (GameView, GameView) = 
     (Await.result((stateActor1 ? GetView).mapTo[GameView], timeout.duration),
     Await.result((stateActor2 ? GetView).mapTo[GameView], timeout.duration))
+
+  def restart() { 
+    val initialState = Stage.newState(Nil,
+      (10, 23), randomStream(new scala.util.Random))
+    stateActor1 ! SetState(initialState)
+    stateActor2 ! SetState(initialState)
+  }
 }

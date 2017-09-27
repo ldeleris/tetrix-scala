@@ -20,7 +20,7 @@ object Main extends SimpleSwingApplication {
 
   val config = Config(minActionTime = 300, //151,
     maxThinkTime = 3000,//1500,
-    onDrop = Some(Tick))
+    onDrop = Some(Drop))
   val ui = new AbstractUI(config)
 
    def onKeyPress(keyCode: Value) = keyCode match {
@@ -29,6 +29,7 @@ object Main extends SimpleSwingApplication {
     case Up    => ui.up()
     case Down  => ui.down()
     case Space => ui.space()
+    case R => ui.restart()
     case _ =>
   }
 

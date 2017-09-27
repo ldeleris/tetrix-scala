@@ -29,56 +29,69 @@ object Stage {
         PieceKind(random.nextInt % 7) #:: randomStream(random)
 
     val notifyAttack: GameState => GameState = (s0: GameState) => 
-        s0.copy(pendingAttacks = s0.pendingAttacks + 1)
+        s0.status match {
+            case ActiveStatus => s0.copy(pendingAttacks = s0.pendingAttacks + 1)
+            case _ => s0
+        }
 
     val attackRandom = new util.Random(0L)
-    private[this] lazy val attack: GameState => GameState =
-        (s0: GameState) => {
-            def attackRow(s: GameState): Seq[Block] =
-                (0 to s.gridSize._1 - 1).toSeq flatMap { x =>
-                    if (attackRandom.nextBoolean) Some(Block((x, 0), TKind))
-                    else None
+    private[this] lazy val attack: GameState => GameState = (s0: GameState) => {
+        s0.status match {
+            case ActiveStatus => 
+                def attackRow(s: GameState): Seq[Block] =
+                    (0 to s.gridSize._1 - 1).toSeq flatMap { x =>
+                        if (attackRandom.nextBoolean) Some(Block((x, 0), TKind))
+                        else None
+                    }
+                @tailrec def tryAttack(s: GameState): GameState =
+                    if (s.pendingAttacks < 1) s 
+                    else tryAttack(s.copy(
+                        blocks = (s.blocks map { b => b.copy(pos = (b.pos._1, b.pos._2 + 1)) } filter {
+                            _.pos._2 < s.gridSize._2 }) ++ attackRow(s),
+                        pendingAttacks = s.pendingAttacks - 2
+                    ))
+                tryAttack(s0)
+            case _ => s0
+        }
+    }
+
+    private[this] lazy val clearFullRow: GameState => GameState = (s0: GameState) => {
+        s0.status match {
+            case ActiveStatus =>
+                def isFullRow(i: Int, s: GameState): Boolean =
+                    (s.blocks filter {_.pos._2 == i} size) == s.gridSize._1
+                @tailrec def tryNow(i: Int, s: GameState): GameState =
+                    if (i < 0) s 
+                    else if (isFullRow(i, s))
+                        tryNow(i - 1, s.copy(blocks = (s.blocks filter {_.pos._2 < i}) ++
+                            (s.blocks filter {_.pos._2 > i} map { b =>
+                                b.copy(pos = (b.pos._1, b.pos._2 - 1)) }),
+                            lastDeleted = s.lastDeleted + 1))
+                    else tryNow(i - 1, s)
+                val s1 = tryNow(s0.gridSize._2 - 1, s0)
+                if (s1.lastDeleted == 0) s1
+                else s1.copy(lineCounts = s1.lineCounts updated
+                    (s1.lastDeleted, s1.lineCounts(s1.lastDeleted) + 1))
+            case _ => s0
+        }
+    }
+
+    private[this] lazy val spawn: GameState => GameState = (s: GameState) => {
+        s.status match {
+            case ActiveStatus =>
+
+                def dropOffPos = (s.gridSize._1 / 2.0, s.gridSize._2 - 3.0)
+                val s1 = s.copy(blocks = s.blocks,
+                    currentPiece = s.nextPiece.copy(pos = dropOffPos),
+                    nextPiece = Piece((2, 1), s.kinds.head),
+                    kinds = s.kinds.tail)
+                validate(s1) map { case x =>
+                    x.load(x.currentPiece)
+                } getOrElse {
+                    s1.load(s1.currentPiece).copy(status = GameOver)
                 }
-            @tailrec def tryAttack(s: GameState): GameState =
-                if (s.pendingAttacks < 1) s 
-                else tryAttack(s.copy(
-                    blocks = (s.blocks map { b => b.copy(pos = (b.pos._1, b.pos._2 + 1)) } filter {
-                        _.pos._2 < s.gridSize._2 }) ++ attackRow(s),
-                    pendingAttacks = s.pendingAttacks - 2
-                ))
-            tryAttack(s0)
+            case _ => s
         }
-
-    private[this] lazy val clearFullRow: GameState => GameState =
-        (s0: GameState) => {
-            def isFullRow(i: Int, s: GameState): Boolean =
-                (s.blocks filter {_.pos._2 == i} size) == s.gridSize._1
-            @tailrec def tryNow(i: Int, s: GameState): GameState =
-                if (i < 0) s 
-                else if (isFullRow(i, s))
-                    tryNow(i - 1, s.copy(blocks = (s.blocks filter {_.pos._2 < i}) ++
-                        (s.blocks filter {_.pos._2 > i} map { b =>
-                            b.copy(pos = (b.pos._1, b.pos._2 - 1)) }),
-                        lastDeleted = s.lastDeleted + 1))
-                else tryNow(i - 1, s)
-            val s1 = tryNow(s0.gridSize._2 - 1, s0)
-            if (s1.lastDeleted == 0) s1
-            else s1.copy(lineCounts = s1.lineCounts updated
-                (s1.lastDeleted, s1.lineCounts(s1.lastDeleted) + 1))
-        }
-
-    private[this] lazy val spawn: GameState => GameState = 
-        (s: GameState) => {
-            def dropOffPos = (s.gridSize._1 / 2.0, s.gridSize._2 - 3.0)
-            val s1 = s.copy(blocks = s.blocks,
-                currentPiece = s.nextPiece.copy(pos = dropOffPos),
-                nextPiece = Piece((2, 1), s.kinds.head),
-                kinds = s.kinds.tail)
-            validate(s1) map { case x =>
-                x.load(x.currentPiece)
-            } getOrElse {
-                s1.load(s1.currentPiece).copy(status = GameOver)
-            }
     }
 
     private[this] def transit(trans: Piece => Piece,
