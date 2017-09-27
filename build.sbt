@@ -4,7 +4,7 @@ lazy val buildSettings = Seq(
   homepage := Some(url("http://deleris.com")),
   licenses := Seq("MIT License" -> url("http://opensource.org/licenses/mit-license.php/")),
   scalaVersion := "2.10.2",
-  scalacOptions := Seq("-deprecation", "-unchecked"),
+  scalacOptions := Seq("-deprecation", "-unchecked", "-feature", "-language:postfixOps"),
   initialCommands in console := """import com.deleris.tetrix._
                                   |import Stage._""".stripMargin,
   resolvers ++= Seq(
