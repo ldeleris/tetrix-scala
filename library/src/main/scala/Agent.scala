@@ -76,12 +76,13 @@ class Agent {
                 val u = utility(s1)
                 if (u > current) {
                     current = u 
-                    retval = seq 
+                    retval = ms 
                 }    
                 SearchNode(s1, ms, u)
             }
             nodes foreach { node =>
-                if (System.currentTimeMillis - t0 < maxThinkTime)
+                if (maxThinkTime == 0 ||
+                    System.currentTimeMillis - t0 < maxThinkTime)
                     actionSeqs(node.state) foreach { seq =>
                         val ms = seq ++ Seq(Drop)
                         val s2 = Function.chain(ms map {toTrans})(node.state)

@@ -36,8 +36,6 @@ object Stage {
 
     val attackRandom = new util.Random(0L)
     private[this] lazy val attack: GameState => GameState = (s0: GameState) => {
-        s0.status match {
-            case ActiveStatus => 
                 def attackRow(s: GameState): Seq[Block] =
                     (0 to s.gridSize._1 - 1).toSeq flatMap { x =>
                         if (attackRandom.nextBoolean) Some(Block((x, 0), TKind))
@@ -48,16 +46,12 @@ object Stage {
                     else tryAttack(s.copy(
                         blocks = (s.blocks map { b => b.copy(pos = (b.pos._1, b.pos._2 + 1)) } filter {
                             _.pos._2 < s.gridSize._2 }) ++ attackRow(s),
-                        pendingAttacks = s.pendingAttacks - 2
+                        pendingAttacks = s.pendingAttacks - 1
                     ))
                 tryAttack(s0)
-            case _ => s0
-        }
     }
 
     private[this] lazy val clearFullRow: GameState => GameState = (s0: GameState) => {
-        s0.status match {
-            case ActiveStatus =>
                 def isFullRow(i: Int, s: GameState): Boolean =
                     (s.blocks filter {_.pos._2 == i} size) == s.gridSize._1
                 @tailrec def tryNow(i: Int, s: GameState): GameState =
@@ -72,14 +66,9 @@ object Stage {
                 if (s1.lastDeleted == 0) s1
                 else s1.copy(lineCounts = s1.lineCounts updated
                     (s1.lastDeleted, s1.lineCounts(s1.lastDeleted) + 1))
-            case _ => s0
-        }
     }
 
     private[this] lazy val spawn: GameState => GameState = (s: GameState) => {
-        s.status match {
-            case ActiveStatus =>
-
                 def dropOffPos = (s.gridSize._1 / 2.0, s.gridSize._2 - 3.0)
                 val s1 = s.copy(blocks = s.blocks,
                     currentPiece = s.nextPiece.copy(pos = dropOffPos),
@@ -90,20 +79,15 @@ object Stage {
                 } getOrElse {
                     s1.load(s1.currentPiece).copy(status = GameOver)
                 }
-            case _ => s
-        }
     }
 
     private[this] def transit(trans: Piece => Piece,
         onFail: GameState => GameState = identity): GameState => GameState = 
-        (s: GameState) => s.status match {
-            case ActiveStatus =>
+        (s: GameState) => 
                 validate(s.unload(s.currentPiece).copy(
                     currentPiece = trans(s.currentPiece))) map { case x =>
                         x.load(x.currentPiece)
                 } getOrElse {onFail(s)} 
-            case _ => s 
-        }
 
     private[this] def validate(s: GameState): Option[GameState] = {
         val size = s.gridSize
