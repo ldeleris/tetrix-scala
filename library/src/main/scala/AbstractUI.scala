@@ -54,7 +54,7 @@ class AbstractUI(config: Config) {
   def restart() { 
     val initialState = Stage.newState(Nil,
       (10, 23), randomStream(new scala.util.Random))
-    stateActor1 ! SetState(initialState)
-    stateActor2 ! SetState(initialState)
+    
+    masterActor ! ReStart(initialState)
   }
 }

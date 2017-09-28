@@ -10,14 +10,21 @@ class GameMasterActor(stateActor1: ActorRef,
     import scala.concurrent.duration._
     import akka.pattern.ask
 
+    var isRestarted: Boolean = false
+
     def receive = {
         case Start => 
             loop  
+        case ReStart(s) =>
+            isRestarted = true
+            stateActor1 ! SetState(s)
+            stateActor2 ! SetState(s)
+            loop 
     }
 
     private[this] def loop {
         var s = getStatesAndJudge._2
-        while (s.status == ActiveStatus) {
+        while (s.status == ActiveStatus && isRestarted == false) {
             val t0 = System.currentTimeMillis
             val future = (agentActor ? BestMoves(getState2, config))(60 second)
             Await.result(future, 60 second)

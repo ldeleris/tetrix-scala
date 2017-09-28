@@ -83,11 +83,15 @@ object Stage {
 
     private[this] def transit(trans: Piece => Piece,
         onFail: GameState => GameState = identity): GameState => GameState = 
-        (s: GameState) => 
+        (s: GameState) =>s.status match {
+            case ActiveStatus =>
                 validate(s.unload(s.currentPiece).copy(
-                    currentPiece = trans(s.currentPiece))) map { case x =>
+                    currentPiece = trans(s.currentPiece),
+                    lastDeleted = 0)) map { case x =>
                         x.load(x.currentPiece)
-                } getOrElse {onFail(s)} 
+                } getOrElse {onFail(s)}      
+            case _ => s
+    }
 
     private[this] def validate(s: GameState): Option[GameState] = {
         val size = s.gridSize

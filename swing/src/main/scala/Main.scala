@@ -18,8 +18,8 @@ object Main extends SimpleSwingApplication {
   val blockMargin = 1
   val mainPanelSize = new Dimension(700, 400)
 
-  val config = Config(minActionTime = 300, //151,
-    maxThinkTime = 3000,//1500,
+  val config = Config(minActionTime = 151,
+    maxThinkTime = 1500,
     onDrop = Some(Drop))
   val ui = new AbstractUI(config)
 
